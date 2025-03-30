@@ -6,7 +6,11 @@
     post('/api/login',function(){
         Controller:: login();
     });
-
+    
     post('/api/register', function() {
         Controller:: register();
+    });
+    
+    get('/api/convo/$id', function($id){
+        Controller:: getConvo($id);
     });
