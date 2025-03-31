@@ -14,3 +14,7 @@
     get('/api/convo/$id', function($id){
         Controller:: getConvo($id);
     });
+
+    post('/api/convo/new', function(){
+        Controller:: newConvo();
+    });
