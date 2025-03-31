@@ -7,6 +7,12 @@ CREATE TABLE Utilisateur (
     date_inscription DATE,
     statut VARCHAR(20)
 );
+CREATE TABLE Recompense (
+    id_recompense INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
+    nom_recompense VARCHAR(20),
+    description VARCHAR(255),
+    points_necessaires INTEGER(100)
+);
 CREATE TABLE Defi (
     id_defi INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
     nom_defi VARCHAR(20),
@@ -18,12 +24,6 @@ CREATE TABLE Defi (
     id_recompenses INTEGER(10),
     FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur),
     FOREIGN KEY (id_recompenses) REFERENCES Recompense(id_recompense)
-);
-CREATE TABLE Recompense (
-    id_recompense INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    nom_recompense VARCHAR(20),
-    description VARCHAR(255),
-    points_necessaires INTEGER(100)
 );
 CREATE TABLE ParticipationDefi (
     id_participation INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
@@ -52,6 +52,12 @@ CREATE TABLE Objectifs (
     statut VARCHAR(20),
     FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
+CREATE TABLE HappyHour (
+    id_happy INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
+    date_debut DATE,
+    date_fin DATE,
+    multiple_points FLOAT(10,2)
+);
 CREATE TABLE SessionEtude (
     id_session INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
     date_debut DATE,
@@ -62,12 +68,6 @@ CREATE TABLE SessionEtude (
     id_happy INTEGER(10),
     FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur),
     FOREIGN KEY (id_happy) REFERENCES HappyHour(id_happy)
-);
-CREATE TABLE HappyHour (
-    id_happy INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    date_debut DATE,
-    date_fin DATE,
-    multiple_points FLOAT(10,2)
 );
 CREATE TABLE Nudge (
     id_nudge INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
@@ -117,8 +117,9 @@ CREATE TABLE Inventaire_Produit (
     FOREIGN KEY (id_produit) REFERENCES Produit(id_produit)
 );
 CREATE TABLE Chat (
-    id_chat INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    date DATE
+    id_chat INTEGER PRIMARY KEY AUTO_INCREMENT,
+    date DATE,
+    chat_name VARCHAR(255)
 );
 CREATE TABLE Participant (
     id_participant INTEGER(10) PRIMARY KEY AUTO_INCREMENT,

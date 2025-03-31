@@ -9,23 +9,22 @@ class Controller
     
         $data = json_decode(file_get_contents("php://input"));
     
-        $query = $pdo->prepare('SELECT * FROM Client WHERE courriel = :courriel');
-        $query->bindParam(':courriel', $data->courriel);
+        $query = $pdo->prepare('SELECT * FROM Utilisateur WHERE email = :email');
+        $query->bindParam(':email', $data->courriel);
         $query->execute();
     
         $user = $query->fetch(PDO::FETCH_ASSOC);
     
-        if ($user && password_verify($data->mot_passe, $user['mot_passe'])) {   
+        if ($user && password_verify($data->mot_passe, $user['mot_de_passe'])) {   
             echo json_encode([
                 'success' => true,
-                'id' => $user['id_client'],
-                'username' => $user['username'],
-                'type' => $user['type']
+                'id' => $user['id_utilisateur'],
+                'type' => $user['statut']
             ]);
         } else {
             echo json_encode(['error' => 'Identifiants incorrects']);
         }
-    } 
+    }     
     
     public static function register() {
         global $pdo;
@@ -35,16 +34,17 @@ class Controller
     
         $data = json_decode(file_get_contents("php://input"));
     
-        if (!isset($data->courriel) || !isset($data->mot_passe) || !isset($data->username) || !isset($data->prenom) || !isset($data->nom) || !isset($data->type)) {
+        if (!isset($data->email) || !isset($data->mot_de_passe) || !isset($data->prenom) || !isset($data->nom) || !isset($data->statut)) {
             http_response_code(400);
             echo json_encode(['error' => 'Données manquantes']);
             return;
         }
     
         try {
-            $query = "SELECT * FROM Client WHERE courriel = :courriel";
+            // Vérification de l'email existant
+            $query = "SELECT * FROM Utilisateur WHERE email = :email";
             $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':courriel', $data->courriel);
+            $stmt->bindParam(':email', $data->email);
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
                 http_response_code(400);
@@ -52,32 +52,30 @@ class Controller
                 return;
             }
     
-            $query = "SELECT * FROM Client WHERE username = :username";
-            $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':username', $data->username);
-            $stmt->execute();
-            if ($stmt->rowCount() > 0) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Ce nom d\'utilisateur est déjà utilisé']);
-                return;
-            }
+            // Hachage du mot de passe
+            $hashedPassword = password_hash($data->mot_de_passe, PASSWORD_DEFAULT);
     
-            $hashedPassword = password_hash($data->mot_passe, PASSWORD_DEFAULT);
+            // Récupérer la date d'aujourd'hui
+            $date = new DateTime();
+            $dateParam = $date->format('Y-m-d');
     
-            $query = "INSERT INTO Client (courriel, mot_passe, username, prenom, nom, type) 
-                      VALUES (:courriel, :mot_passe, :username, :prenom, :nom, :type)";
+            // Insertion de l'utilisateur dans la base de données
+            $query = "INSERT INTO Utilisateur (email, mot_de_passe, prenom, nom, date_inscription, statut) 
+                      VALUES (:email, :mot_de_passe, :prenom, :nom, :date_inscription, :statut)";
             $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':courriel', $data->courriel);
-            $stmt->bindParam(':mot_passe', $hashedPassword);
-            $stmt->bindParam(':username', $data->username);
+            $stmt->bindParam(':email', $data->email);
+            $stmt->bindParam(':mot_de_passe', $hashedPassword);
             $stmt->bindParam(':prenom', $data->prenom);
             $stmt->bindParam(':nom', $data->nom);
-            $stmt->bindParam(':type', $data->type);
+            $stmt->bindParam(':date_inscription', $dateParam);
+            $stmt->bindParam(':statut', $data->statut);
     
+            // Exécution de l'insertion
             if ($stmt->execute()) {
                 $userId = $pdo->lastInsertId();
     
-                $query = "SELECT id_client, username, type FROM Client WHERE id_client = :id";
+                // Récupérer les informations de l'utilisateur après l'insertion
+                $query = "SELECT id_utilisateur, statut FROM Utilisateur WHERE id_utilisateur = :id";
                 $stmt = $pdo->prepare($query);
                 $stmt->bindParam(':id', $userId);
                 $stmt->execute();
@@ -87,9 +85,8 @@ class Controller
                     http_response_code(200);
                     echo json_encode([
                         'success' => true,
-                        'id' => $user['id_client'],
-                        'username' => $user['username'],
-                        'type' => $user['type']
+                        'id' => $user['id_utilisateur'],
+                        'statut' => $user['statut']
                     ]);
                 } else {
                     http_response_code(500);
@@ -103,7 +100,7 @@ class Controller
             http_response_code(500);
             echo json_encode(['error' => 'Erreur de base de données : ' . $e->getMessage()]);
         }
-    }
+    }    
     
     
     public static function getConvo($id) {
@@ -124,23 +121,17 @@ class Controller
             return;
         }
     
-        $query = $pdo->prepare('SELECT id_chat FROM Participant WHERE id_client = :id_client');
-        $query->bindParam(':id_client', $id);
+        $query = $pdo->prepare('SELECT id_chat FROM Participant WHERE id_utilisateur = :id_utilisateur');
+        $query->bindParam(':id_utilisateur', $id);
         $query->execute();
     
         $convoIds = $query->fetchAll(PDO::FETCH_COLUMN);
     
-        if (empty($convoIds)) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Aucune conversation trouvée pour cet utilisateur']);
-            return;
-        }
-    
         $userChats = [];
     
         foreach ($convoIds as $convoId) {
-            $queryChat = $pdo->prepare("SELECT * FROM Chat WHERE id_convo = :id_convo");
-            $queryChat->bindParam(':id_convo', $convoId);
+            $queryChat = $pdo->prepare("SELECT * FROM Chat WHERE id_chat = :id_chat");
+            $queryChat->bindParam(':id_chat', $convoId);
             $queryChat->execute();
     
             $chats = $queryChat->fetchAll(PDO::FETCH_ASSOC);
@@ -150,14 +141,9 @@ class Controller
             }
         }
     
-        if (!empty($userChats)) {
-            echo json_encode([
-                'success' => true,
-                'conversations' => $userChats
-            ]);
-        } else {
-            http_response_code(500);
-            echo json_encode(['error' => 'Impossible de récupérer les conversations.']);
-        }
+        echo json_encode([
+            'success' => true,
+            'conversations' => $userChats
+        ]);
     }             
 }
