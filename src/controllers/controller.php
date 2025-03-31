@@ -111,17 +111,53 @@ class Controller
     
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
-
+    
         if (!isset($id) || empty($id)) {
             http_response_code(400);
             echo json_encode(['error' => 'Aucun ID fourni']);
             return;
         }
-        
+    
         if (!is_numeric($id) || $id <= 0) {
             http_response_code(422);
             echo json_encode(['error' => 'ID invalide']);
             return;
         }
-    }
+    
+        $query = $pdo->prepare('SELECT id_chat FROM Participant WHERE id_client = :id_client');
+        $query->bindParam(':id_client', $id);
+        $query->execute();
+    
+        $convoIds = $query->fetchAll(PDO::FETCH_COLUMN);
+    
+        if (empty($convoIds)) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Aucune conversation trouvée pour cet utilisateur']);
+            return;
+        }
+    
+        $userChats = [];
+    
+        foreach ($convoIds as $convoId) {
+            $queryChat = $pdo->prepare("SELECT * FROM Chat WHERE id_convo = :id_convo");
+            $queryChat->bindParam(':id_convo', $convoId);
+            $queryChat->execute();
+    
+            $chats = $queryChat->fetchAll(PDO::FETCH_ASSOC);
+    
+            if ($chats) {
+                $userChats[] = $chats;
+            }
+        }
+    
+        if (!empty($userChats)) {
+            echo json_encode([
+                'success' => true,
+                'conversations' => $userChats
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Impossible de récupérer les conversations.']);
+        }
+    }             
 }
