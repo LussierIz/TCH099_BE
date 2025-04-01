@@ -3,6 +3,8 @@
     require_once 'router.php';
     require_once './src/controllers/controller.php';
 
+    use Firebase\JWT\JWT;
+
     post('/api/login',function(){
         Controller:: login();
     });

@@ -1,8 +1,11 @@
 <?php
+    use Firebase\JWT\JWT;
+    use Firebase\JWT\Key;
 class Controller
 {
     public static function login() {
         global $pdo;
+        global $API_SECRET;
     
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
@@ -16,11 +19,21 @@ class Controller
         $user = $query->fetch(PDO::FETCH_ASSOC);
     
         if ($user && password_verify($data->mot_passe, $user['mot_de_passe'])) {   
-            echo json_encode([
-                'success' => true,
-                'id' => $user['id_utilisateur'],
-                'type' => $user['statut']
-            ]);
+            $payload = [
+                "iss" => "http://equipeF.tch099.ovh",
+                "aud" => "http://equipeF.tch099.ovh", 
+                "iat" => time(),
+                "exp" => time() + 3600,
+                "user_id" => $user['id_utilisateur']
+                 ];
+                $jwt = JWT::encode($payload, $API_SECRET, 'HS256');
+
+            $response['message'] = "Authentification réussie";
+            $response['token'] = $jwt;
+            $response['id'] = $user['id_utilisateur'];
+
+            http_response_code(200);
+            echo json_encode($response);
         } else {
             echo json_encode(['error' => 'Identifiants incorrects']);
         }
@@ -28,6 +41,8 @@ class Controller
     
     public static function register() {
         global $pdo;
+        global $API_SECRET;
+
     
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
@@ -82,12 +97,21 @@ class Controller
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
                 if ($user) {
+                    $payload = [
+                        "iss" => "http://equipeF.tch099.ovh",
+                        "aud" => "http://equipeF.tch099.ovh", 
+                        "iat" => time(),
+                        "exp" => time() + 3600,
+                        "user_id" => $user['id_utilisateur']
+                         ];
+                        $jwt = JWT::encode($payload, $API_SECRET, 'HS256');
+        
+                    $response['message'] = "Authentification réussie";
+                    $response['token'] = $jwt;
+                    $response['id'] = $userId;
+        
                     http_response_code(200);
-                    echo json_encode([
-                        'success' => true,
-                        'id' => $user['id_utilisateur'],
-                        'statut' => $user['statut']
-                    ]);
+                    echo json_encode($response);
                 } else {
                     http_response_code(500);
                     echo json_encode(['error' => 'Utilisateur créé, mais impossible de récupérer les informations.']);
@@ -104,9 +128,13 @@ class Controller
     
     public static function getConvo($id) {
         global $pdo;
-    
+
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
+
+        if(!Controller::authentifier()){
+            return;
+        }
     
         if (!isset($id) || empty($id)) {
             http_response_code(400);
@@ -153,6 +181,10 @@ class Controller
         header('Content-Type: application/json; charset=utf-8');
     
         $data = json_decode(file_get_contents("php://input"));
+
+        if(!Controller::authentifier()){
+            return;
+        }
     
         if (!isset($data->id_utilisateur) || empty($data->id_utilisateur) || !is_numeric($data->id_utilisateur) || $data->id_utilisateur <= 0) {
             http_response_code(400);
@@ -223,6 +255,10 @@ class Controller
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
 
+        if(!Controller::authentifier()){
+            return;
+        }
+
         if (!isset($convoID) || empty($convoID) || !is_numeric($convoID) || $convoID <= 0) {
             http_response_code(400);
             echo json_encode(['error' => 'ID de conversation invalide']);
@@ -285,5 +321,22 @@ class Controller
         }
     
         echo json_encode(['success' => 'Message créé avec succès']);
+    }
+
+    public static function authentifier() {
+        global $API_SECRET;
+
+        $headers = getallheaders();
+
+        $jwt = str_replace('Bearer ', '', $headers['Authorization'] ?? '');
+
+        try {
+            $decoded = JWT::decode($jwt, new Key($API_SECRET, 'HS256'));
+            return true;
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            throw new Exception('Token expiré!');
+        } catch (\Exception $e) {
+            throw new Exception('Erreur de token: '.$e->getMessage());
+        }
     }
 }
