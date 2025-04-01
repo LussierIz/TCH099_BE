@@ -26,3 +26,7 @@
     post('/api/convo/messages/new', function(){
         Controller:: newMessage();
     });
+
+    post('/api/friend-request/send', function() {
+        Controller::sendFriendRequest();
+    });

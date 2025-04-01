@@ -100,7 +100,50 @@ class Controller
             http_response_code(500);
             echo json_encode(['error' => 'Erreur de base de données : ' . $e->getMessage()]);
         }
-    }    
+    }   
+    
+    public static function sendFriendRequest() {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        $data = json_decode(file_get_contents("php://input"));
+
+        if (!isset($data->senderId) || !isset($data->receiverId)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Pas de ID du recevoir ou de lenvoyeur']);
+            return;
+        }
+
+        if ($data->senderId == $data->receiverId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Ne pas envoyer une requete a soi-meme']);
+            return;
+        }
+
+        $query = $pdo->prepare("SELECT * FROM Amitie WHERE id_utilisateur1 = :senderId AND id_utilisateur2 = :receiverId AND statut = 'pending'");
+        $query->bindParam(':senderId', $data->senderId);
+        $query->bindParam(':receiverId', $data->receiverId);
+        $query->execute();
+        if ($query->rowCount() > 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Demande damis deja en attente']);
+            return;
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO Amitie (date_debut_amitie, statut, id_utilisateur1, id_utilisateur2) VALUES (NULL, 'pending', :senderId, :receiverId)");
+        $stmt->bindParam(':senderId', $data->senderId);
+        $stmt->bindParam(':receiverId', $data->receiverId);
+    
+        if ($stmt->execute()) {
+            http_response_code(201);
+            echo json_encode(['success' => 'Demande damis envoyé']);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Echec de lenvoi de la demande damis']);
+        }
+    }
     
     public static function getConvo($id) {
         global $pdo;
