@@ -18,3 +18,11 @@
     post('/api/convo/new', function(){
         Controller:: newConvo();
     });
+
+    get('/api/convo/messages/$id', function($convoID){
+        Controller:: getMessage($convoID);
+    });
+
+    post('/api/convo/messages/new', function(){
+        Controller:: newMessage();
+    });

@@ -131,8 +131,9 @@ CREATE TABLE Participant (
 CREATE TABLE Messages (
     id_message INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
     texte VARCHAR(255),
-    statut VARCHAR(20),
     date_envoi DATE,
     id_chat INTEGER(10),
-    FOREIGN KEY (id_chat) REFERENCES Chat(id_chat)
+    id_utilisateur INTEGER(10),
+    FOREIGN KEY (id_chat) REFERENCES Chat(id_chat),
+    FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
