@@ -1,6 +1,18 @@
 <?php
     session_start();
 
+    require_once __DIR__."/src/vendor/JWTExceptionWithPayloadInterface.php";
+    require_once __DIR__."/src/vendor/BeforeValidException.php";
+    require_once __DIR__."/src/vendor/CachedKeySet.php";
+    require_once __DIR__."/src/vendor/ExpiredException.php";
+    require_once __DIR__."/src/vendor/JWK.php";
+    require_once __DIR__."/src/vendor/JWT.php";
+    require_once __DIR__."/src/vendor/Key.php";
+    require_once __DIR__."/src/vendor/SignatureInvalidException.php";
+    
+    global $API_SECRET;
+    $API_SECRET = "ma_cle_super_secrete";
+
     // Configuration et connexion à la base de données
     $host = 'db';
     $db = 'mydatabase';
