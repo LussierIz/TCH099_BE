@@ -146,14 +146,30 @@ class Controller
             return;
         }
 
-        $query = $pdo->prepare("SELECT * FROM Amitie WHERE id_utilisateur1 = :senderId AND id_utilisateur2 = :receiverId AND statut = 'pending'");
-        $query->bindParam(':senderId', $data->senderId);
-        $query->bindParam(':receiverId', $data->receiverId);
-        $query->execute();
-        if ($query->rowCount() > 0) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Demande damis deja en attente']);
-            return;
+        $query = $pdo->prepare("SELECT * FROM Amitie 
+        WHERE ((id_utilisateur1 = :senderId1 AND id_utilisateur2 = :receiverId1)
+        OR (id_utilisateur1 = :receiverId2 AND id_utilisateur2 = :senderId2))
+        AND statut IN ('pending', 'accepted')");
+
+        $query->bindParam(':senderId1', $data->senderId);
+        $query->bindParam(':receiverId1', $data->receiverId);
+        $query->bindParam(':receiverId2', $data->receiverId);
+        $query->bindParam(':senderId2', $data->senderId);
+        $query->execute(); 
+
+        $existing = $query->fetchAll(PDO::FETCH_ASSOC);
+        if (count($existing) > 0) {
+        foreach ($existing as $relation) {
+            if ($relation['statut'] == 'accepted') {
+                http_response_code(400);
+                echo json_encode(['error' => 'Vous êtes déjà amis']);
+                return;
+            }
+        }
+        
+        http_response_code(400);
+        echo json_encode(['error' => 'Demande d\'amis déjà en attente']);
+        return;
         }
 
         $stmt = $pdo->prepare("INSERT INTO Amitie (date_debut_amitie, statut, id_utilisateur1, id_utilisateur2) VALUES (NULL, 'pending', :senderId, :receiverId)");
@@ -166,6 +182,66 @@ class Controller
         } else {
             http_response_code(500);
             echo json_encode(['error' => 'Echec de lenvoi de la demande damis']);
+        }
+    }
+
+    public static function getFriendRequests($userId) {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!is_numeric($userId) || $userId <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid user ID']);
+            return;
+        }
+    
+        // Get all requetes damis
+        $query = $pdo->prepare("SELECT * FROM Amitie WHERE id_utilisateur2 = :userId AND statut = 'pending'");
+        $query->bindParam(':userId', $userId);
+        $query->execute();
+        $requests = $query->fetchAll(PDO::FETCH_ASSOC);
+    
+        echo json_encode(['success' => true, 'requests' => $requests]);
+    }
+
+    public static function updateFriendRequest($requestId) {
+        global $pdo;
+    
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+    
+        $data = json_decode(file_get_contents("php://input"));
+    
+        if (!isset($data->action)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing action (accept/decline)']);
+            return;
+        }
+    
+        $action = $data->action;
+        if ($action !== 'accept' && $action !== 'decline') {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid action. Use "accept" or "decline"']);
+            return;
+        }
+    
+        if ($action === 'accept') {
+            // If accepte, update statut to "accepted" and set the start date
+            $query = $pdo->prepare("UPDATE Amitie SET statut = 'accepted', date_debut_amitie = CURDATE() WHERE id_amitie = :requestId");
+        } else {
+            // sinon declined
+            $query = $pdo->prepare("UPDATE Amitie SET statut = 'declined' WHERE id_amitie = :requestId");
+        }
+    
+        $query->bindParam(':requestId', $requestId);
+    
+        if ($query->execute()) {
+            echo json_encode(['success' => "Friend request $action" . "ed"]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to update friend request']);
         }
     }
     

@@ -32,3 +32,11 @@
     post('/api/friend-request/send', function() {
         Controller::sendFriendRequest();
     });
+
+    get('/api/friend-requests/$userId', function($userId){
+        Controller::getFriendRequests($userId);
+    });
+
+    put('/api/friend-request/$requestId', function($requestId){
+        Controller::updateFriendRequest($requestId);
+    });
