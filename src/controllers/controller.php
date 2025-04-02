@@ -285,6 +285,10 @@ class Controller
 
         $data = json_decode(file_get_contents("php://input"));
 
+        if(!Controller::authentifier()){
+            return;
+        }
+
         if (!isset($data->texte) || empty($data->texte)) {
             http_response_code(400);
             echo json_encode(['error' => 'Le texte du message est requis']);
@@ -334,9 +338,13 @@ class Controller
             $decoded = JWT::decode($jwt, new Key($API_SECRET, 'HS256'));
             return true;
         } catch (\Firebase\JWT\ExpiredException $e) {
-            throw new Exception('Token expiré!');
+            http_response_code(401);
+            echo json_encode(['error' => 'Token expiré!']);
+            return false;
         } catch (\Exception $e) {
-            throw new Exception('Erreur de token: '.$e->getMessage());
+            http_response_code(401);
+            echo json_encode(['error' => 'Erreur de token']);
+            return false;
         }
     }
 }
