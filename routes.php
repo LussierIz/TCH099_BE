@@ -40,3 +40,7 @@
     put('/api/friend-request/$requestId', function($requestId){
         Controller::updateFriendRequest($requestId);
     });
+
+    get('/api/friend-list/$userId', function($userId){
+        Controller::getFriendList($userId);
+    });

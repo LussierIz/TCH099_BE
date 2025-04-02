@@ -244,6 +244,43 @@ class Controller
             echo json_encode(['error' => 'Failed to update friend request']);
         }
     }
+
+    public static function getFriendList($userId) {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!isset($userId) || !is_numeric($userId) || $userId <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid user ID']);
+            return;
+        }
+
+        $query = $pdo->prepare("
+        SELECT 
+            u.id_utilisateur, 
+            u.email, 
+            u.prenom, 
+            u.nom, 
+            u.date_inscription, 
+            u.statut
+        FROM Amitie a
+        JOIN Utilisateur u 
+            ON (
+                (a.id_utilisateur1 = :userId1 AND a.id_utilisateur2 = u.id_utilisateur)
+                OR 
+                (a.id_utilisateur2 = :userId2 AND a.id_utilisateur1 = u.id_utilisateur)
+            )
+        WHERE a.statut = 'accepted'
+        ");
+        $query->bindParam(':userId1', $userId);
+        $query->bindParam(':userId2', $userId);
+        $query->execute();
+        $friends = $query->fetchAll(PDO::FETCH_ASSOC);
+    
+        echo json_encode(['success' => true, 'friends' => $friends]);
+    }
     
     public static function getConvo($id) {
         global $pdo;
