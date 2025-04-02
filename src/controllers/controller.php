@@ -134,6 +134,10 @@ class Controller
 
         $data = json_decode(file_get_contents("php://input"));
 
+        if(!Controller::authentifier()){
+            return;
+        }
+
         if (!isset($data->senderId) || !isset($data->receiverId)) {
             http_response_code(400);
             echo json_encode(['error' => 'Pas de ID du recevoir ou de lenvoyeur']);
@@ -191,6 +195,10 @@ class Controller
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
 
+        if(!Controller::authentifier()){
+            return;
+        }
+
         if (!is_numeric($userId) || $userId <= 0) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid user ID']);
@@ -213,6 +221,10 @@ class Controller
         header('Content-Type: application/json; charset=utf-8');
     
         $data = json_decode(file_get_contents("php://input"));
+
+        if(!Controller::authentifier()){
+            return;
+        }
     
         if (!isset($data->action)) {
             http_response_code(400);
@@ -223,7 +235,7 @@ class Controller
         $action = $data->action;
         if ($action !== 'accept' && $action !== 'decline') {
             http_response_code(400);
-            echo json_encode(['error' => 'Invalid action. Use "accept" or "decline"']);
+            echo json_encode(['error' => 'Action invalide. Use "accept" or "decline"']);
             return;
         }
     
@@ -250,6 +262,10 @@ class Controller
 
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
+
+        if(!Controller::authentifier()){
+            return;
+        }
 
         if (!isset($userId) || !is_numeric($userId) || $userId <= 0) {
             http_response_code(400);
