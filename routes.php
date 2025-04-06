@@ -30,7 +30,6 @@
         Controller:: newMessage();
     });
 
-
     // Routes pour gerer les amis ici
     post('/api/friend-request/send', function() {
         Controller::sendFriendRequest();
@@ -60,13 +59,8 @@
         Controller::getNombreSession($id);
     });
 
-    //Routes pour gerer les objectifs ici
     post('/api/create-objectif/create', function() {
         Controller::createObjectif();
-    });
-
-    get('/api/get-objectifs/$userId', function($userId) {
-        Controller::getObjectifs($userId);
     });
 
     get('/api/get-objectif/$id', function($id) {
