@@ -672,4 +672,35 @@ class Controller
         }
     }
 
+    public static function deleteObjectif($id) {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!Controller::authentifier()) {
+            return;
+        }
+
+        if (!is_numeric($id) || $id <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => "ID invalide"]);
+            return;
+        }
+
+        $query = $pdo->prepare("DELETE FROM Objectifs WHERE id_objectif = :id_objectif");
+        $query->bindParam(':id_objectif', $id);
+
+        if ($query->execute()) {
+            if ($query->rowCount() > 0) {
+                echo json_encode(['success' => "Objectif supprimé avec succès"]);
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => "Objectif non trouvé"]);
+            }
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => "Erreur lors de la suppression de l'objectif"]);
+        }
+    }
 }

@@ -60,3 +60,7 @@
     put('/api/update-objectif/$id', function($id) {
         Controller::updateObjectif($id);
     });
+
+    delete('/api/delete-objectif/$id', function($id) {
+        Controller::deleteObjectif($id);
+    });
