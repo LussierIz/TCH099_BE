@@ -44,3 +44,7 @@
     get('/api/friend-list/$userId', function($userId){
         Controller::getFriendList($userId);
     });
+
+    post('/api/create-objectif/create', function() {
+        Controller::createObjectif();
+    });
