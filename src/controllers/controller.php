@@ -591,4 +591,85 @@ class Controller
         }
     }
 
+    public static function getObjectif($id) {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!Controller::authentifier()) {
+            return;
+        }
+
+        if (!is_numeric($id) || $id <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => "ID invalide"]);
+            return;
+        }
+
+        $query = $pdo->prepare("SELECT * FROM Objectifs WHERE id_objectif = :id_objectif");
+        $query->bindParam(':id_objectif', $id);
+
+        if ($query->execute()) {
+            $objectif = $query->fetch(PDO::FETCH_ASSOC);
+            if ($objectif) {
+                echo json_encode(['success' => true, 'objectif' => $objectif]);
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => "Objectif non trouvé"]);
+            }
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => "Erreur lors de la récupération de l'objectif"]);
+        }
+    }
+
+    public static function updateObjectif($id) {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!Controller::authentifier()) {
+            return;
+        }
+
+        $data = json_decode(file_get_contents("php://input"));
+
+        if (!isset($data->titre) || !isset($data->description) ||
+            !isset($data->date_debut) || !isset($data->date_fin) || !isset($data->statut)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Données manquantes']);
+            return;
+        }
+
+        $query = $pdo->prepare("
+            UPDATE Objectifs 
+            SET titre = :titre,
+                description = :description,
+                date_debut = :date_debut,
+                date_fin = :date_fin,
+                statut = :statut
+            WHERE id_objectif = :id_objectif
+        ");
+        $query->bindParam(':titre', $data->titre);
+        $query->bindParam(':description', $data->description);
+        $query->bindParam(':date_debut', $data->date_debut);
+        $query->bindParam(':date_fin', $data->date_fin);
+        $query->bindParam(':statut', $data->statut);
+        $query->bindParam(':id_objectif', $id);
+
+        if ($query->execute()) {
+            if ($query->rowCount() > 0) {
+                echo json_encode(['success' => "Objectif mis à jour avec succès"]);
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => "Objectif non trouvé ou aucune modification apportée"]);
+            }
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => "Erreur lors de la mise à jour de l'objectif"]);
+        }
+    }
+
 }

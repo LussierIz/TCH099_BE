@@ -52,3 +52,11 @@
     get('/api/get-objectifs/$userId', function($userId) {
         Controller::getObjectifs($userId);
     });
+
+    get('/api/get-objectif/$id', function($id) {
+        Controller::getObjectif($id);
+    });
+
+    put('/api/update-objectif/$id', function($id) {
+        Controller::updateObjectif($id);
+    });
