@@ -563,5 +563,32 @@ class Controller
         }
     }
 
+    public static function getObjectifs($userId) {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!Controller::authentifier()) {
+            return;
+        }
+
+        if (!is_numeric($userId) || $userId <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'ID utilisateur invalide']);
+            return;
+        }
     
+        $query = $pdo->prepare("SELECT * FROM Objectifs WHERE id_utilisateur = :id_utilisateur");
+        $query->bindParam(':id_utilisateur', $userId);
+
+        if ($query->execute()) {
+            $objectifs = $query->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'objectifs' => $objectifs]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => "Erreur lors de la récupération des objectifs"]);
+        }
+    }
+
 }

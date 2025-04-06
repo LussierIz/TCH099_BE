@@ -48,3 +48,7 @@
     post('/api/create-objectif/create', function() {
         Controller::createObjectif();
     });
+
+    get('/api/get-objectifs/$userId', function($userId) {
+        Controller::getObjectifs($userId);
+    });
