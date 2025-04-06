@@ -76,7 +76,7 @@ class Controller
     
             // Insertion de l'utilisateur dans la base de données
             $query = "INSERT INTO Utilisateur (email, mot_de_passe, prenom, nom, date_inscription, statut) 
-                      VALUES (:email, :mot_de_passe, :prenom, :nom, :date_inscription, :statut)";
+                    VALUES (:email, :mot_de_passe, :prenom, :nom, :date_inscription, :statut)";
             $stmt = $pdo->prepare($query);
             $stmt->bindParam(':email', $data->email);
             $stmt->bindParam(':mot_de_passe', $hashedPassword);
@@ -84,38 +84,41 @@ class Controller
             $stmt->bindParam(':nom', $data->nom);
             $stmt->bindParam(':date_inscription', $dateParam);
             $stmt->bindParam(':statut', $data->statut);
-    
+
             // Exécution de l'insertion
             if ($stmt->execute()) {
                 $userId = $pdo->lastInsertId();
+                $zeroValue = 0;
+
+                $queryBanque = "INSERT INTO Banque (quantite_xp, quantite_coins, id_utilisateur) 
+                    VALUES (:quantite_xp, :quantite_coins, :id_utilisateur)";
+
+                $stmtBanque = $pdo->prepare($queryBanque);
+                $stmtBanque->bindParam(':quantite_xp', $zeroValue);
+                $stmtBanque->bindParam(':quantite_coins', $zeroValue);
+                $stmtBanque->bindParam(':id_utilisateur', $userId);
+
+               if(!$stmtBanque->execute()){
+                http_response_code(500);
+                echo json_encode(['error' => 'Erreur lors de l\'enregistrement (au niveau de la banque)']);
+               }
     
-                // Récupérer les informations de l'utilisateur après l'insertion
-                $query = "SELECT id_utilisateur, statut FROM Utilisateur WHERE id_utilisateur = :id";
-                $stmt = $pdo->prepare($query);
-                $stmt->bindParam(':id', $userId);
-                $stmt->execute();
-                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                $payload = [
+                    "iss" => "http://equipeF.tch099.ovh",
+                    "aud" => "http://equipeF.tch099.ovh", 
+                    "iat" => time(),
+                    "exp" => time() + 3600,
+                    "user_id" => $userId
+                    ];
+                
+                $jwt = JWT::encode($payload, $API_SECRET, 'HS256');
     
-                if ($user) {
-                    $payload = [
-                        "iss" => "http://equipeF.tch099.ovh",
-                        "aud" => "http://equipeF.tch099.ovh", 
-                        "iat" => time(),
-                        "exp" => time() + 3600,
-                        "user_id" => $user['id_utilisateur']
-                         ];
-                        $jwt = JWT::encode($payload, $API_SECRET, 'HS256');
-        
-                    $response['message'] = "Authentification réussie";
-                    $response['token'] = $jwt;
-                    $response['id'] = $userId;
-        
-                    http_response_code(200);
-                    echo json_encode($response);
-                } else {
-                    http_response_code(500);
-                    echo json_encode(['error' => 'Utilisateur créé, mais impossible de récupérer les informations.']);
-                }
+                $response['message'] = "Authentification réussie";
+                $response['token'] = $jwt;
+                $response['id'] = $userId;
+    
+                http_response_code(200);
+                echo json_encode($response);
             } else {
                 http_response_code(500);
                 echo json_encode(['error' => 'Erreur lors de l\'enregistrement']);
@@ -498,6 +501,150 @@ class Controller
     
         echo json_encode(['success' => 'Message créé avec succès']);
     }
+
+    public static function getStatistics($id) {
+        global $pdo;
+    
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if(!Controller::authentifier()){
+            return;
+        }
+
+        if (!isset($id) || empty($id)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Aucun ID fourni']);
+            return;
+        }
+    
+        if (!is_numeric($id) || $id <= 0) {
+            http_response_code(422);
+            echo json_encode(['error' => 'ID invalide']);
+            return;
+        }
+    
+        $query = $pdo->prepare('SELECT * FROM SessionEtude WHERE id_utilisateur = :id_utilisateur');
+        $query->bindParam(':id_utilisateur', $id);
+
+        if (!$query->execute()) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur lors de l’ajout du participant']);
+            return;
+        }
+        
+        $stats = $query->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode($stats);
+    }
+
+    public static function addSession() {
+        global $pdo;
+    
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        $data = json_decode(file_get_contents("php://input"));
+
+        if(!Controller::authentifier()){
+            return;
+        }
+
+        if (!isset($data->user_id) || empty($data->user_id)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Aucun ID d\'utilisateur']);
+            return;
+        }
+
+        if (!isset($data->duree) || empty($data->duree)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Aucune durée']);
+            return;
+        }
+
+        if (!isset($data->date_debut) || empty($data->date_debut)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Aucune date de début']);
+            return;
+        }
+
+        if (!isset($data->date_fin) || empty($data->date_fin)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Aucune date de fin']);
+            return;
+        }
+
+        $duree = $data->duree;
+
+        $pointGagner = floor($duree / 100);
+        $pointGagner = intval($pointGagner);
+
+        $querySession = $pdo->prepare('INSERT INTO SessionEtude (date_debut, date_fin, Duree, points_gagnes, id_utilisateur) 
+                    VALUES (:date_debut, :date_fin, :Duree, :points_gagnes, :id_utilisateur)');
+        $querySession->bindParam(':date_debut', $data->date_debut);
+        $querySession->bindParam(':date_fin', $data->date_fin);
+        $querySession->bindParam(':Duree', $data->duree);
+        $querySession->bindParam(':points_gagnes', $pointGagner);
+        $querySession->bindParam(':id_utilisateur', $data->user_id);
+
+        if (!$querySession->execute()) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur lors de l’ajout de la SessionEtude']);
+            return;
+        }
+
+        $queryBanque = $pdo->prepare('UPDATE Banque SET quantite_xp = quantite_xp + :quantite_xp 
+                WHERE id_utilisateur = :id_utilisateur');
+
+        $queryBanque->bindParam(':quantite_xp', $pointGagner);
+        $queryBanque->bindParam(':id_utilisateur', $data->user_id);
+
+        if (!$queryBanque->execute()) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur lors de l’update de la banque']);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'points_gagnes' => $pointGagner,
+            'message' => '+'.$pointGagner.' XP ajoutés avec succès !'
+        ]);
+    }
+
+    public static function getNombreSession($id){
+        global $pdo;
+    
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+    
+        if(!Controller::authentifier()){
+            return;
+        }
+    
+        if (!isset($id) || empty($id)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Aucun ID fourni']);
+            return;
+        }
+    
+        if (!is_numeric($id) || $id <= 0) {
+            http_response_code(422);
+            echo json_encode(['error' => 'ID invalide']);
+            return;
+        }
+    
+        $query = $pdo->prepare('SELECT COUNT(*) AS nombre_sessions FROM SessionEtude WHERE id_utilisateur = :id_utilisateur');
+        $query->bindParam(':id_utilisateur', $id);
+    
+        if (!$query->execute()) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur lors de la récupération du nombre de sessions']);
+            return;
+        }
+    
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+        echo json_encode(['nombre_sessions' => $result['nombre_sessions']]);
+    }    
 
     public static function authentifier() {
         global $API_SECRET;

@@ -65,7 +65,7 @@ CREATE TABLE SessionEtude (
     Duree TIME,
     points_gagnes INTEGER(100),
     id_utilisateur INTEGER(10),
-    id_happy INTEGER(10),
+    id_happy INTEGER(10) DEFAULT NULL,
     FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur),
     FOREIGN KEY (id_happy) REFERENCES HappyHour(id_happy)
 );

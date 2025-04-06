@@ -44,3 +44,15 @@
     get('/api/friend-list/$userId', function($userId){
         Controller::getFriendList($userId);
     });
+
+    get('/api/stats/$id', function($id){
+        Controller::getStatistics($id);
+    });
+
+    post('/api/session/enregistrer', function(){
+        Controller::addSession();
+    });
+
+    get('/api/session/$id', function($id){
+        Controller::getNombreSession($id);
+    });
