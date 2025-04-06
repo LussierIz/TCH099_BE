@@ -2,6 +2,7 @@
     require_once 'config.php';
     require_once 'router.php';
     require_once './src/controllers/controller.php';
+    require_once './src/controllers/user.php';
 
     use Firebase\JWT\JWT;
 
@@ -29,6 +30,8 @@
         Controller:: newMessage();
     });
 
+
+    // Routes pour gerer les amis ici
     post('/api/friend-request/send', function() {
         Controller::sendFriendRequest();
     });
@@ -45,6 +48,8 @@
         Controller::getFriendList($userId);
     });
 
+
+    //Routes pour gerer les objectifs ici
     post('/api/create-objectif/create', function() {
         Controller::createObjectif();
     });
@@ -63,4 +68,10 @@
 
     delete('/api/delete-objectif/$id', function($id) {
         Controller::deleteObjectif($id);
+    });
+
+
+    //Routes pour gerer l'utilisateur
+    get('/api/get-user/$id', function($id) {
+        User::getUser($id);
     });
