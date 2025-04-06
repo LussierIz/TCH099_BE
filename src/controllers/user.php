@@ -19,7 +19,7 @@ class User
             return;
         }
     
-        $query = $pdo->prepare("SELECT id_utilisateur, prenom, nom, email, statut FROM Utilisateur WHERE id_utilisateur = :id");
+        $query = $pdo->prepare("SELECT id_utilisateur, prenom, nom, email, statut, date_inscription FROM Utilisateur WHERE id_utilisateur = :id");
         $query->bindParam(':id', $id);
     
         if ($query->execute()) {
