@@ -719,36 +719,38 @@ class Controller
 
     public static function getObjectif($id) {
         global $pdo;
-
+    
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
-
+    
+        // Authentification
         if (!Controller::authentifier()) {
             return;
         }
-
+    
+        // Vérification de l'ID utilisateur
         if (!is_numeric($id) || $id <= 0) {
             http_response_code(400);
             echo json_encode(['error' => "ID invalide"]);
             return;
         }
-
-        $query = $pdo->prepare("SELECT * FROM Objectifs WHERE id_objectif = :id_objectif");
-        $query->bindParam(':id_objectif', $id);
-
-        if ($query->execute()) {
-            $objectif = $query->fetch(PDO::FETCH_ASSOC);
-            if ($objectif) {
-                echo json_encode(['success' => true, 'objectif' => $objectif]);
-            } else {
-                http_response_code(404);
-                echo json_encode(['error' => "Objectif non trouvé"]);
+    
+        try {
+            $query = $pdo->prepare("SELECT * FROM Objectifs WHERE id_utilisateur = :id_utilisateur");
+            $query->bindParam(':id_utilisateur', $id);
+            
+            if($query->execute()){
+                $objectifs = $query->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode(['success' => true, 'objectifs' => $objectifs]);
             }
-        } else {
+    
+            $objectifs = $query->fetchAll(PDO::FETCH_ASSOC);
+    
+        } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['error' => "Erreur lors de la récupération de l'objectif"]);
+            echo json_encode(['error' => "Erreur lors de la récupération : " . $e->getMessage()]);
         }
-    }
+    }    
 
     public static function updateObjectif($id) {
         global $pdo;
