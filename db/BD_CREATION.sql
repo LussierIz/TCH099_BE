@@ -52,6 +52,15 @@ CREATE TABLE Objectifs (
     statut VARCHAR(20),
     FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
+CREATE TABLE Taches (
+    id_tache INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
+    id_objectif INTEGER(10),
+    titre VARCHAR(100),
+    description VARCHAR(255),
+    statut VARCHAR(20) DEFAULT 'non commencé',
+    date_fin DATE,
+    FOREIGN KEY (id_objectif) REFERENCES Objectifs(id_objectif)
+);
 CREATE TABLE HappyHour (
     id_happy INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
     date_debut DATE,

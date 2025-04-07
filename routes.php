@@ -63,8 +63,8 @@
         Controller::createObjectif();
     });
 
-    get('/api/get-objectif/$id', function($id) {
-        Controller::getObjectif($id);
+    get('/api/get-objectifs/$id', function($id) {
+        Controller::getObjectifs($id);
     });
 
     put('/api/update-objectif/$id', function($id) {
@@ -78,4 +78,12 @@
     //Routes pour gerer l'utilisateur
     get('/api/get-user/$id', function($id) {
         User::getUser($id);
+    });
+
+    post('/api/creer-tache', function(){
+        Controller::addTache();
+    });
+
+    get('/api/get-taches/$id', function($id){
+        Controller::getTaches($id);
     });
