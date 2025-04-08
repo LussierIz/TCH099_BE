@@ -85,6 +85,27 @@ class convo
             return;
         }
 
+        $queryCheckFriend1 = $pdo->prepare('SELECT * FROM Amitie WHERE id_utilisateur1 = :id1 AND id_utilisateur2 = :id2');
+        $queryCheckFriend1->bindParam(':id1', $data->id_utilisateur);
+        $queryCheckFriend1->bindParam(':id2', $data->id_invite);
+        $queryCheckFriend1->execute();
+        $amitie1 = $queryCheckFriend1->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$amitie1 || $amitie1['statut'] !== "accepted") {
+            $queryCheckFriend2 = $pdo->prepare('SELECT * FROM Amitie WHERE id_utilisateur1 = :id2 AND id_utilisateur2 = :id1');
+            $queryCheckFriend2->bindParam(':id2', $data->id_utilisateur);
+            $queryCheckFriend2->bindParam(':id1', $data->id_invite);
+            $queryCheckFriend2->execute();
+            $amitie2 = $queryCheckFriend2->fetch(PDO::FETCH_ASSOC);
+        
+            if (!$amitie2 || $amitie2['statut'] !== "accepted") {
+                http_response_code(403);
+                echo json_encode(['error' => 'Vous n\'êtes pas encore amis avec cet utilisateur.']);
+                return;
+            }
+        }       
+                
+
         $date = new DateTime();
         $dateParam = $date->format('Y-m-d');
     
@@ -112,10 +133,10 @@ class convo
             return;
         }
     
-        $queryInviter = "INSERT INTO Participant (id_chat, id_utilisateur) VALUES (:id_chat, :id_invite)";
+        $queryInviter = "INSERT INTO Participant (id_chat, id_utilisateur) VALUES (:id_chat, :id_utilisateur)";
         $stmtInviter = $pdo->prepare($queryInviter);
         $stmtInviter->bindParam(':id_chat', $lastInsertIdChat);
-        $stmtInviter->bindParam(':id_invite', $data->id_invite);
+        $stmtInviter->bindParam(':id_utilisateur', $data->id_invite);
     
         if (!$stmtInviter->execute()) {
             http_response_code(500);
