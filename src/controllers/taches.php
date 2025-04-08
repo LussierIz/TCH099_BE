@@ -15,14 +15,15 @@ class taches
         
         $data = json_decode(file_get_contents("php://input"));
         
-        if (empty($data->titre) || empty($data->description) || empty($data->date) || empty($data->titre_objectif)) {
+        if (empty($data->titre) || empty($data->description) || empty($data->date) || empty($data->titre_objectif) || empty($data->id_utilisateur)) {
             http_response_code(400);
             echo json_encode(['error' => 'Données manquantes']);
             return;
         }        
     
-        $queryGetObjectif = $pdo->prepare('SELECT id_objectif FROM Objectifs WHERE titre = :titre LIMIT 1');
+        $queryGetObjectif = $pdo->prepare('SELECT id_objectif FROM Objectifs WHERE titre = :titre AND id_utilisateur = :id_utilisateur LIMIT 1');
         $queryGetObjectif->bindParam(':titre', $data->titre_objectif);
+        $queryGetObjectif->bindParam(':id_utilisateur', $data->id_utilisateur);
         $queryGetObjectif->execute();
         $idObjectif = $queryGetObjectif->fetch(PDO::FETCH_ASSOC);
     
