@@ -87,3 +87,7 @@
     get('/api/get-taches/$id', function($id){
         Controller::getTaches($id);
     });
+
+    post('/api/notes/save', function() {
+        Controller::saveNote();
+    });
