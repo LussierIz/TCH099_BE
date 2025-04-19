@@ -3,6 +3,14 @@
     require_once 'router.php';
     require_once './src/controllers/controller.php';
     require_once './src/controllers/user.php';
+    require_once './src/controllers/convo.php';
+    require_once './src/controllers/friend.php';
+    require_once './src/controllers/message.php';
+    require_once './src/controllers/objectif.php';
+    require_once './src/controllers/session.php';
+    require_once './src/controllers/stats.php';
+    require_once './src/controllers/taches.php';
+
 
     use Firebase\JWT\JWT;
 
@@ -15,64 +23,64 @@
     });
     
     get('/api/convo/$id', function($id){
-        Controller:: getConvo($id);
+        convo:: getConvo($id);
     });
 
     post('/api/convo/new', function(){
-        Controller:: newConvo();
+        convo:: newConvo();
     });
 
     get('/api/convo/messages/$id', function($convoID){
-        Controller:: getMessage($convoID);
+        message:: getMessage($convoID);
     });
 
     post('/api/convo/messages/new', function(){
-        Controller:: newMessage();
+        message:: newMessage();
     });
 
     // Routes pour gerer les amis ici
     post('/api/friend-request/send', function() {
-        Controller::sendFriendRequest();
+        friend::sendFriendRequest();
     });
 
     get('/api/friend-requests/$userId', function($userId){
-        Controller::getFriendRequests($userId);
+        friend::getFriendRequests($userId);
     });
 
     put('/api/friend-request/$requestId', function($requestId){
-        Controller::updateFriendRequest($requestId);
+        friend::updateFriendRequest($requestId);
     });
 
     get('/api/friend-list/$userId', function($userId){
-        Controller::getFriendList($userId);
+        friend::getFriendList($userId);
     });
 
     get('/api/stats/$id', function($id){
-        Controller::getStatistics($id);
+        stats::getStatistics($id);
     });
 
     post('/api/session/enregistrer', function(){
-        Controller::addSession();
+        session::addSession();
     });
 
     get('/api/session/$id', function($id){
-        Controller::getNombreSession($id);
+        session::getNombreSession($id);
     });
 
     post('/api/create-objectif/create', function() {
-        Controller::createObjectif();
+        objectif::createObjectif();
     });
 
     get('/api/get-objectifs/$id', function($id) {
-        Controller::getObjectifs($id);
+        objectif::getObjectifs($id);
     });
 
     put('/api/update-objectif/$id', function($id) {
-        Controller::updateObjectif($id);
+        objectif::updateObjectif($id);
     });
 
     delete('/api/delete-objectif/$id', function($id) {
-        Controller::deleteObjectif($id);
+        objectif::deleteObjectif($id);
     });
 
     //Routes pour gerer l'utilisateur
@@ -81,7 +89,7 @@
     });
 
     post('/api/creer-tache', function(){
-        Controller::addTache();
+        taches::addTache();
     });
 
     get('/api/get-taches/$id', function($id){
