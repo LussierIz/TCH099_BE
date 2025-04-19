@@ -10,6 +10,7 @@
     require_once './src/controllers/session.php';
     require_once './src/controllers/stats.php';
     require_once './src/controllers/taches.php';
+    require_once './src/controllers/note.php';
 
 
     use Firebase\JWT\JWT;
@@ -97,5 +98,17 @@
     });
 
     post('/api/notes/save', function() {
-        Controller::saveNote();
+        note::saveNote();
+    });
+
+    get('/api/notes/$id_utilisateur', function($id_utilisateur) {
+        note::getNotes($id_utilisateur);
+    });
+
+    put('/api/notes/update/$id', function($id_note) {
+        note::updateNote($id_note);
+    });
+
+    DELETE('/api/notes/delete/$id', function($id_note) {
+        note::deleteNote($id_note);
     });
