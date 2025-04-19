@@ -85,26 +85,31 @@ class convo
             return;
         }
 
+        $amitie1 = null;
+        $amitie2 = null;
+
         $queryCheckFriend1 = $pdo->prepare('SELECT * FROM Amitie WHERE id_utilisateur1 = :id1 AND id_utilisateur2 = :id2');
         $queryCheckFriend1->bindParam(':id1', $data->id_utilisateur);
         $queryCheckFriend1->bindParam(':id2', $data->id_invite);
         $queryCheckFriend1->execute();
         $amitie1 = $queryCheckFriend1->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$amitie1 || $amitie1['statut'] !== "accepted") {
+
+        if (!$amitie1) {
             $queryCheckFriend2 = $pdo->prepare('SELECT * FROM Amitie WHERE id_utilisateur1 = :id2 AND id_utilisateur2 = :id1');
-            $queryCheckFriend2->bindParam(':id2', $data->id_utilisateur);
-            $queryCheckFriend2->bindParam(':id1', $data->id_invite);
+            $queryCheckFriend2->bindParam(':id2', $data->id_invite);
+            $queryCheckFriend2->bindParam(':id1', $data->id_utilisateur);
             $queryCheckFriend2->execute();
             $amitie2 = $queryCheckFriend2->fetch(PDO::FETCH_ASSOC);
-        
-            if (!$amitie2 || $amitie2['statut'] !== "accepted") {
-                http_response_code(403);
-                echo json_encode(['error' => 'Vous n\'êtes pas encore amis avec cet utilisateur.']);
-                return;
-            }
-        }       
-                
+        }
+
+        if (
+            (!$amitie1 || $amitie1['statut'] !== "accepted") &&
+            (!$amitie2 || $amitie2['statut'] !== "accepted")
+        ) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Vous n\'êtes pas encore amis avec cet utilisateur.']);
+            return;
+        }              
 
         $date = new DateTime();
         $dateParam = $date->format('Y-m-d');
