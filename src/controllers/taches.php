@@ -55,9 +55,8 @@ class taches
     
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
-    
+        
         if (!Controller::authentifier()) {
-            echo json_encode(['success' => false, 'message' => 'Utilisateur non authentifié']);
             return;
         }
     
@@ -103,9 +102,8 @@ class taches
     
         // Lire les données JSON reçues
         $data = json_decode(file_get_contents("php://input"));
-
+       
         if (!Controller::authentifier()) {
-            echo json_encode(['success' => false, 'message' => 'Utilisateur non authentifié']);
             return;
         }
     
@@ -134,6 +132,10 @@ class taches
             $stmt->bindParam(':tache_id', $tacheId);
             $stmt->bindParam(':statut', $newStatut);
             $stmt->execute();
+
+            $stmtBanqueUpdate = $pdo->prepare("UPDATE Banque SET quantite_xp = quantite_xp + 1, quantite_coins = quantite_coins + 1 WHERE id_utilisateur = :id_utilisateur");
+            $stmtBanqueUpdate->bindParam(':id_utilisateur', $data->id_utilisateur);
+            $stmtBanqueUpdate->execute();
         
             echo json_encode(["success" => true, "message" => "Statut mis à jour en 'complété'."]);
         
