@@ -57,7 +57,7 @@ CREATE TABLE Taches (
     id_objectif INTEGER(10),
     titre VARCHAR(100),
     description VARCHAR(255),
-    statut VARCHAR(20) DEFAULT 'non commencé',
+    statut VARCHAR(20) DEFAULT 'En cours',
     date_fin DATE,
     FOREIGN KEY (id_objectif) REFERENCES Objectifs(id_objectif)
 );

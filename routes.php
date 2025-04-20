@@ -31,6 +31,11 @@
         convo:: newConvo();
     });
 
+    get('/api/convo/search/$id', function($id){
+        $query = $_GET['q'] ?? '';
+        convo::searchConvo($id, $query);
+    });
+    
     get('/api/convo/messages/$id', function($convoID){
         message:: getMessage($convoID);
     });
@@ -94,7 +99,11 @@
     });
 
     get('/api/get-taches/$id', function($id){
-        Controller::getTaches($id);
+        taches::getTaches($id);
+    });
+
+    put('/api/set-statut', function() {
+        taches::setStatut();
     });
 
     post('/api/notes/save', function() {

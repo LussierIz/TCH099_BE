@@ -56,30 +56,90 @@ class taches
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
     
-        // Vérification de l'authentification de l'utilisateur
         if (!Controller::authentifier()) {
             echo json_encode(['success' => false, 'message' => 'Utilisateur non authentifié']);
             return;
         }
     
         try {
-            $queryTaches = $pdo->prepare('SELECT * FROM Taches WHERE id_objectif IN 
-            (SELECT id_objectif FROM Objectifs WHERE id_utilisateur = :id_utilisateur)');
+            // Récupérer tous les objectifs de l'utilisateur
+            $queryObjectifs = $pdo->prepare('
+                SELECT id_objectif AS id, titre 
+                FROM Objectifs 
+                WHERE id_utilisateur = :id_utilisateur
+            ');
+            $queryObjectifs->bindParam(':id_utilisateur', $id_utilisateur);
+            $queryObjectifs->execute();
+            $objectifs = $queryObjectifs->fetchAll(PDO::FETCH_ASSOC);
+    
+            // Récupérer les tâches associées à ces objectifs
+            $queryTaches = $pdo->prepare('
+                SELECT t.*, o.titre AS objectif_titre 
+                FROM Taches t
+                LEFT JOIN Objectifs o ON t.id_objectif = o.id_objectif
+                WHERE o.id_utilisateur = :id_utilisateur
+            ');
             $queryTaches->bindParam(':id_utilisateur', $id_utilisateur);
             $queryTaches->execute();
             $taches = $queryTaches->fetchAll(PDO::FETCH_ASSOC);
-
-            if (empty($taches)) {
-                echo json_encode(['success' => false, 'message' => 'Aucune tâche trouvée pour cet utilisateur']);
-                return;
-            }
-
-            echo json_encode(['success' => true, 'taches' => $taches]);
+    
+            echo json_encode([
+                'success' => true,
+                'objectifs' => $objectifs,
+                'taches' => $taches
+            ]);
     
         } catch (Exception $e) {
-            // Gestion des erreurs
             http_response_code(500);
             echo json_encode(['error' => 'Erreur interne du serveur', 'message' => $e->getMessage()]);
         }
-    }
+    } 
+
+    public static function setStatut() {
+        global $pdo;
+    
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+    
+        // Lire les données JSON reçues
+        $data = json_decode(file_get_contents("php://input"));
+
+        if (!Controller::authentifier()) {
+            echo json_encode(['success' => false, 'message' => 'Utilisateur non authentifié']);
+            return;
+        }
+    
+        if (!isset($data->tache_id)) {
+            http_response_code(400);
+            echo json_encode(["error" => "ID de la tâche manquant."]);
+            return;
+        }
+    
+        $tacheId = $data->tache_id;
+        $newStatut = 'complété';
+    
+        try {
+            // Vérification si la tâche existe
+            $stmtCheck = $pdo->prepare("SELECT 1 FROM Taches WHERE id_tache = :tache_id");
+            $stmtCheck->bindParam(':tache_id', $tacheId);
+            $stmtCheck->execute();
+        
+            if ($stmtCheck->rowCount() == 0) {
+                echo json_encode(["error" => "La tâche avec l'ID spécifié n'existe pas."]);
+                return;
+            }
+        
+            // Mise à jour du statut
+            $stmt = $pdo->prepare("UPDATE Taches SET statut = :statut WHERE id_tache = :tache_id");
+            $stmt->bindParam(':tache_id', $tacheId);
+            $stmt->bindParam(':statut', $newStatut);
+            $stmt->execute();
+        
+            echo json_encode(["success" => true, "message" => "Statut mis à jour en 'complété'."]);
+        
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => "Erreur lors de la mise à jour du statut : " . $e->getMessage()]);
+        }        
+    }     
 }

@@ -151,4 +151,46 @@ class convo
     
         echo json_encode(['success' => 'Conversation créée avec succès', 'chat_id' => $lastInsertIdChat]);
     } 
+
+    public static function searchConvo($id, $query) {
+        global $pdo;
+    
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+    
+        if (!Controller::authentifier()) {
+            return;
+        }
+    
+        if (!isset($id) || empty($id) || !is_numeric($id) || $id <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'ID utilisateur invalide']);
+            return;
+        }
+    
+        if (!isset($query) || empty(trim($query))) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Terme de recherche manquant']);
+            return;
+        }
+    
+        $stmt = $pdo->prepare("
+            SELECT Chat.*
+            FROM Chat
+            INNER JOIN Participant ON Chat.id_chat = Participant.id_chat
+            WHERE Participant.id_utilisateur = :id
+            AND LOWER(Chat.chat_name) LIKE LOWER(:query)
+        ");
+        $likeQuery = "%" . $query . "%";
+        $stmt->bindParam(':id', $id);
+        $stmt->bindValue(':query', $likeQuery);
+        $stmt->execute();        
+        
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        echo json_encode([
+            'success' => true,
+            'conversations' => $result
+        ]);
+    }    
 }
