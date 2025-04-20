@@ -11,7 +11,7 @@
     require_once './src/controllers/stats.php';
     require_once './src/controllers/taches.php';
     require_once './src/controllers/note.php';
-
+    require_once './src/controllers/devoirs.php';
 
     use Firebase\JWT\JWT;
 
@@ -120,4 +120,20 @@
 
     DELETE('/api/notes/delete/$id', function($id_note) {
         note::deleteNote($id_note);
+    });
+
+    post('/api/create-devoir/create', function() {
+        devoirs::createDevoir();
+    });
+
+    get('/api/get-devoirs/$id', function($id) {
+        devoirs::getDevoirs($id);
+    });
+
+    put('/api/update-devoir/$id', function($id) {
+        devoirs::updateDevoir($id);
+    });
+
+    delete('/api/delete-devoir/$id', function($id) {
+        devoirs::deleteDevoir($id);
     });
