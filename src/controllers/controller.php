@@ -31,6 +31,7 @@ class Controller
             $response['message'] = "Authentification réussie";
             $response['token'] = $jwt;
             $response['id'] = $user['id_utilisateur'];
+            $response['statut'] = $user['statut'];
 
             http_response_code(200);
             echo json_encode($response);
