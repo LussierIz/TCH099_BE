@@ -12,6 +12,7 @@
     require_once './src/controllers/taches.php';
     require_once './src/controllers/note.php';
     require_once './src/controllers/devoirs.php';
+    require_once './src/controllers/boutique.php';
 
     use Firebase\JWT\JWT;
 
@@ -136,4 +137,8 @@
 
     delete('/api/delete-devoir/$id', function($id) {
         devoirs::deleteDevoir($id);
+    });
+
+    get('/api/shop/$userId', function($userId) {
+        Boutique::getBoutiqueItems($userId);
     });
