@@ -151,6 +151,13 @@
     devoirs::getDevoirsRecus($id);
     });
 
+    // routes pour gerer la boutique
     get('/api/shop/$userId', function($userId) {
         Boutique::getBoutiqueItems($userId);
     });
+
+    post('/api/shop/buy', function(){
+        Boutique::buyItem();
+    });
+    
+
