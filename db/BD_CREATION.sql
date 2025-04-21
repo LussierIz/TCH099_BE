@@ -153,6 +153,8 @@ CREATE TABLE Devoir (
     date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     date_limite DATETIME,
     id_utilisateur INTEGER(10),
+    id_destinataire INTEGER(10),
     statut VARCHAR(20) NOT NULL DEFAULT 'à faire',
+    FOREIGN KEY (id_destinataire) REFERENCES Utilisateur(id_utilisateur),
     FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );

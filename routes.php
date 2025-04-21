@@ -139,6 +139,18 @@
         devoirs::deleteDevoir($id);
     });
 
+    get('/api/get-devoirs-envoyes/$id', function($id) {
+    devoirs::getDevoirsEnvoyes($id);
+    });
+
+    post('/api/share-devoir/$id', function($id) {
+    devoirs::shareDevoir($id);
+    });
+
+    get('/api/get-devoirs-recus/$id', function($id) {
+    devoirs::getDevoirsRecus($id);
+    });
+
     get('/api/shop/$userId', function($userId) {
         Boutique::getBoutiqueItems($userId);
     });
