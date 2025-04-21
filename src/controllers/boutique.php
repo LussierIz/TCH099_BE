@@ -39,9 +39,9 @@ class Boutique
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
 
-        // if (!Controller::authentifier()) {
-        //     return;
-        // }
+        if (!Controller::authentifier()) {
+            return;
+        }
 
         // 1) recuperation les donnees du front
         $data = json_decode(file_get_contents("php://input"));
