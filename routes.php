@@ -156,8 +156,8 @@
         Boutique::getBoutiqueItems($userId);
     });
 
-    post('/api/shop/buy', function(){
-        Boutique::buyItem();
+    post('/api/shop/buy/$userId/$prodId', function($userId, $prodId) {
+        Boutique::buyItem((int)$userId, (int)$prodId);
     });
     
 
