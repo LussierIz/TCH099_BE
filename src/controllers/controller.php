@@ -18,26 +18,33 @@ class Controller
     
         $user = $query->fetch(PDO::FETCH_ASSOC);
     
-        if ($user && password_verify($data->mot_passe, $user['mot_de_passe'])) {   
-            $payload = [
-                "iss" => "http://equipeF.tch099.ovh",
-                "aud" => "http://equipeF.tch099.ovh", 
-                "iat" => time(),
-                "exp" => time() + 3600,
-                "user_id" => $user['id_utilisateur']
-                 ];
+        if ($user) {
+            if (password_verify($data->mot_passe, $user['mot_de_passe'])) {
+                // Générer le token et envoyer la réponse
+                $payload = [
+                    "iss" => "http://equipeF.tch099.ovh",
+                    "aud" => "http://equipeF.tch099.ovh", 
+                    "iat" => time(),
+                    "exp" => time() + 3600,
+                    "user_id" => $user['id_utilisateur']
+                ];
                 $jwt = JWT::encode($payload, $API_SECRET, 'HS256');
-
-            $response['message'] = "Authentification réussie";
-            $response['token'] = $jwt;
-            $response['id'] = $user['id_utilisateur'];
-            $response['statut'] = $user['statut'];
-
-            http_response_code(200);
-            echo json_encode($response);
+        
+                $response['message'] = "Authentification réussie";
+                $response['token'] = $jwt;
+                $response['id'] = $user['id_utilisateur'];
+                $response['statut'] = $user['statut'];
+        
+                http_response_code(200);
+                echo json_encode($response);
+            } else {
+                http_response_code(401);
+                echo json_encode(['error' => 'Mot de passe incorrect']);
+            }
         } else {
-            echo json_encode(['error' => 'Identifiants incorrects']);
-        }
+            http_response_code(401);
+            echo json_encode(['error' => 'Utilisateur introuvable']);
+        }        
     }     
     
     public static function register() {
