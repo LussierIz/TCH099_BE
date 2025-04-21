@@ -21,11 +21,17 @@ class User
     
         $query = $pdo->prepare("SELECT id_utilisateur, prenom, nom, email, statut, date_inscription FROM Utilisateur WHERE id_utilisateur = :id");
         $query->bindParam(':id', $id);
+
+        $queryBanque = $pdo->prepare("SELECT * FROM Banque WHERE id_utilisateur = :id");
+        $queryBanque->bindParam(':id', $id);
     
         if ($query->execute()) {
             $user = $query->fetch(PDO::FETCH_ASSOC);
+
+            $queryBanque->execute();
+            $banque = $queryBanque->fetch(PDO::FETCH_ASSOC);
             if ($user) {
-                echo json_encode(['success' => true, 'user' => $user]);
+                echo json_encode(['success' => true, 'user' => $user, 'banque' => $banque]);
             } else {
                 http_response_code(404);
                 echo json_encode(['error' => "Utilisateur non trouvé"]);
