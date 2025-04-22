@@ -190,5 +190,67 @@ class objectif
             http_response_code(500);
             echo json_encode(['error' => "Erreur lors de la suppression de l'objectif"]);
         }
-    }    
+    }  
+    
+    public static function completerObjectif($id) {
+        global $pdo;
+    
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+    
+        if (!Controller::authentifier()) {
+            return;
+        }
+    
+        if (!is_numeric($id) || $id <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => "ID invalide"]);
+            return;
+        }
+    
+        $check = $pdo->prepare("SELECT COUNT(*) FROM Taches WHERE id_objectif = :id_objectif AND statut != 'complété'");
+        $check->bindParam(':id_objectif', $id);
+        $check->execute();
+        $incompletes = $check->fetchColumn();
+    
+        if ($incompletes > 0) {
+            http_response_code(400);
+            echo json_encode(['error' => "Toutes les tâches doivent être complétées avant de valider l'objectif."]);
+            return;
+        }
+    
+        $query = $pdo->prepare("UPDATE Objectifs SET statut = 'complété' WHERE id_objectif = :id_objectif");
+        $query->bindParam(':id_objectif', $id);
+    
+        if ($query->execute()) {
+            if ($query->rowCount() > 0) {
+                $taskCheck = $pdo->prepare("SELECT COUNT(*) FROM Taches WHERE id_objectif = :id_objectif");
+                $taskCheck->bindParam(':id_objectif', $id);
+                $taskCheck->execute();
+                $taskCount = $taskCheck->fetchColumn();
+    
+                if ($taskCount > 0) {
+                    $userQuery = $pdo->prepare("SELECT id_utilisateur FROM Objectifs WHERE id_objectif = :id_objectif");
+                    $userQuery->bindParam(':id_objectif', $id);
+                    $userQuery->execute();
+                    $userData = $userQuery->fetch(PDO::FETCH_ASSOC);
+                    $userId = $userData['id_utilisateur'];
+    
+                    $stmtBanqueUpdate = $pdo->prepare("UPDATE Banque SET quantite_xp = quantite_xp + 1, quantite_coins = quantite_coins + 3 WHERE id_utilisateur = :id_utilisateur");
+                    $stmtBanqueUpdate->bindParam(':id_utilisateur', $userId);
+                    $stmtBanqueUpdate->execute();
+    
+                    echo json_encode(['success' => "Objectif marqué comme complété et coins ajoutés"]);
+                } else {
+                    echo json_encode(['success' => "Objectif marqué comme complété, mais aucune tâche liée."]);
+                }
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => "Objectif non trouvé"]);
+            }
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => "Erreur lors de la mise à jour"]);
+        }
+    }           
 }

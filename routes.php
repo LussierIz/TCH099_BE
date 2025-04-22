@@ -80,6 +80,10 @@
         objectif::createObjectif();
     });
 
+    post('/api/complet-objectif/$id', function($id) {
+        objectif::completerObjectif($id);
+    });
+
     get('/api/get-objectifs/$id', function($id) {
         objectif::getObjectifs($id);
     });
