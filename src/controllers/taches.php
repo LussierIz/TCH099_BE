@@ -15,29 +15,33 @@ class taches
         
         $data = json_decode(file_get_contents("php://input"));
         
-        if (empty($data->titre) || empty($data->description) || empty($data->date) || empty($data->titre_objectif) || empty($data->id_utilisateur)) {
+        if (empty($data->titre) || empty($data->description) || empty($data->date) || empty($data->id_objectif) || empty($data->id_utilisateur)) {
             http_response_code(400);
             echo json_encode(['error' => 'Données manquantes']);
             return;
         }        
     
-        $queryGetObjectif = $pdo->prepare('SELECT id_objectif FROM Objectifs WHERE titre = :titre AND id_utilisateur = :id_utilisateur LIMIT 1');
-        $queryGetObjectif->bindParam(':titre', $data->titre_objectif);
+        $queryGetObjectif = $pdo->prepare('SELECT id_objectif, statut FROM Objectifs WHERE id_objectif = :id_objectif AND id_utilisateur = :id_utilisateur');
+        $queryGetObjectif->bindParam(':id_objectif', $data->id_objectif);
         $queryGetObjectif->bindParam(':id_utilisateur', $data->id_utilisateur);
         $queryGetObjectif->execute();
-        $idObjectif = $queryGetObjectif->fetch(PDO::FETCH_ASSOC);
-    
-        if (!$idObjectif) {
+        $objectif = $queryGetObjectif->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$objectif) {
             http_response_code(404);
             echo json_encode(['error' => 'Objectif non trouvé']);
             return;
         }
-    
-        $idObjectif = $idObjectif['id_objectif'];
-    
+        
+        if ($objectif['statut'] === 'complété') {
+            http_response_code(400);
+            echo json_encode(['error' => 'Impossible d\'ajouter une tâche à un objectif complet']);
+            return;
+        }        
+
         $query = $pdo->prepare('INSERT INTO Taches (id_objectif, titre, description, date_fin) 
         VALUES (:id_objectif, :titre, :description, :date_fin)');
-        $query->bindParam(':id_objectif', $idObjectif);
+        $query->bindParam(':id_objectif', $data->id_objectif);
         $query->bindParam(':titre', $data->titre);
         $query->bindParam(':description', $data->description);
         $query->bindParam(':date_fin', $data->date);
