@@ -13,6 +13,7 @@
     require_once './src/controllers/note.php';
     require_once './src/controllers/devoirs.php';
     require_once './src/controllers/boutique.php';
+    require_once './src/controllers/citations.php';
 
     use Firebase\JWT\JWT;
 
@@ -140,15 +141,15 @@
     });
 
     get('/api/get-devoirs-envoyes/$id', function($id) {
-    devoirs::getDevoirsEnvoyes($id);
+        devoirs::getDevoirsEnvoyes($id);
     });
 
     post('/api/share-devoir/$id', function($id) {
-    devoirs::shareDevoir($id);
+        devoirs::shareDevoir($id);
     });
 
     get('/api/get-devoirs-recus/$id', function($id) {
-    devoirs::getDevoirsRecus($id);
+        devoirs::getDevoirsRecus($id);
     });
 
     // routes pour gerer la boutique
@@ -158,6 +159,10 @@
 
     post('/api/shop/buy/$userId/$prodId', function($userId, $prodId) {
         Boutique::buyItem((int)$userId, (int)$prodId);
+    });
+
+    get('/api/get-random-quote', function() {
+        citations::getRandomQuote();
     });
     
     get('/api/shop/bought/$userId', function($userId) {
