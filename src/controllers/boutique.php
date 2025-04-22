@@ -165,4 +165,34 @@ class Boutique
             echo json_encode(['error' => $e->getMessage()]);
         }
     }
+
+    public static function getBoughtItems($userId)
+    {
+        global $pdo;
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!Controller::authentifier()) {
+            return;
+        }
+
+        $stmt = $pdo->prepare("SELECT id_inventaire FROM Inventaire WHERE id_utilisateur = :uid");
+        $stmt->execute([':uid'=>$userId]);
+        $invId = $stmt->fetchColumn();
+        if (!$invId) {
+            echo json_encode(['success'=>true, 'bought'=>[]]);
+            return;
+        }
+
+        $stmt = $pdo->prepare("
+            SELECT ip.id_produit 
+              FROM Inventaire_Produit ip
+             WHERE ip.id_inventaire = :inv
+        ");
+        $stmt->execute([':inv'=>$invId]);
+        $bought = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        echo json_encode(['success'=>true, 'bought'=>$bought]);
+    }
 }

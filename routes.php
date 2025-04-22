@@ -160,4 +160,7 @@
         Boutique::buyItem((int)$userId, (int)$prodId);
     });
     
-
+    get('/api/shop/bought/$userId', function($userId) {
+        Boutique::getBoughtItems($userId);
+    });
+    

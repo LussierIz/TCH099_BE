@@ -5,8 +5,7 @@ INSERT INTO Produit (prix, titre, description, image, id_boutique)
 VALUES
   (300, 'Thème Galaxie', 'Un habillage exclusif pour votre interface.', '/images/theme-galaxie.png', @shopId),
   (150, 'Companion',   'Un petit companion qui veille sur vous lors de votre étude',     '/images/cadre-dore.png',     @shopId),
-  (100, 'Booster +50 XP','Gagne instantanément 50 points d'expérience.', '/images/boost-xp.png',    @shopId),
-  (0,   'Pack 500 Coins','Reçois 500 coins gratuits.',              '/images/pack-coins.png',     @shopId);
+  (100, 'Police spéciale','Change la police', '/images/police.png',    @shopId);
 
 INSERT INTO Inventaire (id_utilisateur)
 SELECT u.id_utilisateur
