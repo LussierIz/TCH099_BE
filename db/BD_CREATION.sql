@@ -158,3 +158,8 @@ CREATE TABLE Devoir (
     FOREIGN KEY (id_destinataire) REFERENCES Utilisateur(id_utilisateur),
     FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
+
+CREATE TABLE Citation (
+    id_citation INTEGER (10) PRIMARY KEY AUTO_INCREMENT,
+    texte VARCHAR(500) NOT NULL
+);
