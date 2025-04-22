@@ -14,6 +14,7 @@
     require_once './src/controllers/devoirs.php';
     require_once './src/controllers/boutique.php';
     require_once './src/controllers/citations.php';
+    require_once './src/controllers/leaderboard.php';
 
     use Firebase\JWT\JWT;
 
@@ -161,11 +162,19 @@
         Boutique::buyItem((int)$userId, (int)$prodId);
     });
 
-    get('/api/get-random-quote', function() {
-        citations::getRandomQuote();
-    });
-    
     get('/api/shop/bought/$userId', function($userId) {
         Boutique::getBoughtItems($userId);
     });
+
+    // route quote
+    get('/api/get-random-quote', function() {
+        citations::getRandomQuote();
+    });
+
+    //route leaderboard
+    get('/api/friends/weekly-hours/$userId', function($userId){
+        Leaderboard::getWeeklyHours($userId);
+    });
+    
+    
     
