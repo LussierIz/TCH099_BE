@@ -50,7 +50,6 @@ class Controller
     public static function register() {
         global $pdo;
         global $API_SECRET;
-
     
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/json; charset=utf-8');
@@ -60,6 +59,20 @@ class Controller
         if (!isset($data->email) || !isset($data->mot_de_passe) || !isset($data->prenom) || !isset($data->nom) || !isset($data->statut)) {
             http_response_code(400);
             echo json_encode(['error' => 'Données manquantes']);
+            return;
+        }
+    
+        $mdp = $data->mot_de_passe;
+    
+        // Validation du mot de passe
+        if (
+            strlen($mdp) < 8 ||
+            preg_match_all('/\d/', $mdp) < 4 ||
+            !preg_match('/[\W_]/', $mdp)
+        ) {
+            $message = "Le mot de passe doit contenir au moins 8 caractères, 4 chiffres et 1 caractère spécial.";
+            http_response_code(400);
+            echo json_encode(['error' => $message]);
             return;
         }
     
@@ -76,15 +89,15 @@ class Controller
             }
     
             // Hachage du mot de passe
-            $hashedPassword = password_hash($data->mot_de_passe, PASSWORD_DEFAULT);
+            $hashedPassword = password_hash($mdp, PASSWORD_DEFAULT);
     
-            // Récupérer la date d'aujourd'hui
+            // Date actuelle
             $date = new DateTime();
             $dateParam = $date->format('Y-m-d');
     
-            // Insertion de l'utilisateur dans la base de données
+            // Insertion de l'utilisateur
             $query = "INSERT INTO Utilisateur (email, mot_de_passe, prenom, nom, date_inscription, statut) 
-                    VALUES (:email, :mot_de_passe, :prenom, :nom, :date_inscription, :statut)";
+                      VALUES (:email, :mot_de_passe, :prenom, :nom, :date_inscription, :statut)";
             $stmt = $pdo->prepare($query);
             $stmt->bindParam(':email', $data->email);
             $stmt->bindParam(':mot_de_passe', $hashedPassword);
@@ -92,24 +105,23 @@ class Controller
             $stmt->bindParam(':nom', $data->nom);
             $stmt->bindParam(':date_inscription', $dateParam);
             $stmt->bindParam(':statut', $data->statut);
-
-            // Exécution de l'insertion
+    
             if ($stmt->execute()) {
                 $userId = $pdo->lastInsertId();
                 $zeroValue = 0;
-
+    
                 $queryBanque = "INSERT INTO Banque (quantite_xp, quantite_coins, id_utilisateur) 
-                    VALUES (:quantite_xp, :quantite_coins, :id_utilisateur)";
-
+                                VALUES (:quantite_xp, :quantite_coins, :id_utilisateur)";
                 $stmtBanque = $pdo->prepare($queryBanque);
                 $stmtBanque->bindParam(':quantite_xp', $zeroValue);
                 $stmtBanque->bindParam(':quantite_coins', $zeroValue);
                 $stmtBanque->bindParam(':id_utilisateur', $userId);
-
-               if(!$stmtBanque->execute()){
-                http_response_code(500);
-                echo json_encode(['error' => 'Erreur lors de l\'enregistrement (au niveau de la banque)']);
-               }
+    
+                if (!$stmtBanque->execute()) {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Erreur lors de l\'enregistrement (au niveau de la banque)']);
+                    return;
+                }
     
                 $payload = [
                     "iss" => "http://equipeF.tch099.ovh",
@@ -117,16 +129,16 @@ class Controller
                     "iat" => time(),
                     "exp" => time() + 3600,
                     "user_id" => $userId
-                    ];
-                
+                ];
+    
                 $jwt = JWT::encode($payload, $API_SECRET, 'HS256');
     
-                $response['message'] = "Authentification réussie";
-                $response['token'] = $jwt;
-                $response['id'] = $userId;
-    
-                http_response_code(200);
-                echo json_encode($response);
+                echo json_encode([
+                    'message' => "Authentification réussie",
+                    'token' => $jwt,
+                    'id' => $userId,
+                    'statut' => $data->statut
+                ]);
             } else {
                 http_response_code(500);
                 echo json_encode(['error' => 'Erreur lors de l\'enregistrement']);
@@ -135,7 +147,7 @@ class Controller
             http_response_code(500);
             echo json_encode(['error' => 'Erreur de base de données : ' . $e->getMessage()]);
         }
-    }                     
+    }                    
 
     public static function authentifier() {
         global $API_SECRET;
