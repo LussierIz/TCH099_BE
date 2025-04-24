@@ -1,0 +1,17 @@
+-- Supprimer les tables enfants en premier pour éviter les conflits de FK
+DROP TABLE IF EXISTS Inventaire_Produit;
+DROP TABLE IF EXISTS Messages;
+DROP TABLE IF EXISTS Participant;
+DROP TABLE IF EXISTS Chat;
+DROP TABLE IF EXISTS Produit;
+DROP TABLE IF EXISTS Boutique;
+DROP TABLE IF EXISTS Banque;
+DROP TABLE IF EXISTS Inventaire;
+DROP TABLE IF EXISTS Amitie;
+DROP TABLE IF EXISTS SessionEtude;
+DROP TABLE IF EXISTS Taches;
+DROP TABLE IF EXISTS Objectifs;
+DROP TABLE IF EXISTS Notes;
+DROP TABLE IF EXISTS Devoir;
+DROP TABLE IF EXISTS Citation;
+DROP TABLE IF EXISTS Utilisateur;

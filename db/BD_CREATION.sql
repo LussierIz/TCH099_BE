@@ -7,33 +7,6 @@ CREATE TABLE Utilisateur (
     date_inscription DATE,
     statut VARCHAR(20)
 );
-CREATE TABLE Recompense (
-    id_recompense INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    nom_recompense VARCHAR(20),
-    description VARCHAR(255),
-    points_necessaires INTEGER(100)
-);
-CREATE TABLE Defi (
-    id_defi INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    nom_defi VARCHAR(20),
-    description VARCHAR(255),
-    date_debut DATE,
-    date_fin DATE,
-    recompenses VARCHAR(255),
-    id_utilisateur INTEGER(10),
-    id_recompenses INTEGER(10),
-    FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur),
-    FOREIGN KEY (id_recompenses) REFERENCES Recompense(id_recompense)
-);
-CREATE TABLE ParticipationDefi (
-    id_participation INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    statut VARCHAR(20),
-    points_gagnes INTEGER(100),
-    id_utilisateur INTEGER(10),
-    id_defi INTEGER(10),
-    FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur),
-    FOREIGN KEY (id_defi) REFERENCES Defi(id_defi)
-);
 CREATE TABLE Notes (
     id_note INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
     titre VARCHAR(100),
@@ -61,12 +34,6 @@ CREATE TABLE Taches (
     date_fin DATE,
     FOREIGN KEY (id_objectif) REFERENCES Objectifs(id_objectif)
 );
-CREATE TABLE HappyHour (
-    id_happy INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    date_debut DATE,
-    date_fin DATE,
-    multiple_points FLOAT(10,2)
-);
 CREATE TABLE SessionEtude (
     id_session INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
     date_debut DATE,
@@ -75,15 +42,7 @@ CREATE TABLE SessionEtude (
     points_gagnes INTEGER(100),
     id_utilisateur INTEGER(10),
     id_happy INTEGER(10) DEFAULT NULL,
-    FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur),
-    FOREIGN KEY (id_happy) REFERENCES HappyHour(id_happy)
-);
-CREATE TABLE Nudge (
-    id_nudge INTEGER(10) PRIMARY KEY AUTO_INCREMENT,
-    date_envoi DATE,
-    message VARCHAR(255),
-    id_utilisateur_envoyeur INTEGER(10),
-    FOREIGN KEY (id_utilisateur_envoyeur) REFERENCES Utilisateur(id_utilisateur)
+    FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
 CREATE TABLE Amitie (
     id_amitie INTEGER(10) PRIMARY KEY AUTO_INCREMENT,

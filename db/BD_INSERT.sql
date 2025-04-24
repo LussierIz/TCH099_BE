@@ -57,3 +57,4 @@ INSERT INTO Citation (texte) VALUES
 ("Yesterday is history, tomorrow is a mystery, and today is a gift... that's why they call it present (Master Oogway)"),
 ("Un talent sans effort et un talent perdu."),
 ("I can accept failure, everyone fails at something. But I can't accept not trying.");
+
