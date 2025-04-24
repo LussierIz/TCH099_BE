@@ -3,9 +3,9 @@ SET @shopId = LAST_INSERT_ID();
 
 INSERT INTO Produit (prix, titre, description, image, id_boutique)
 VALUES
-  (300, 'Thème Galaxie', 'Un habillage exclusif pour votre interface.', '/images/theme-galaxie.png', @shopId),
-  (150, 'Companion',   'Un petit companion qui veille sur vous lors de votre étude',     '/images/cadre-dore.png',     @shopId),
-  (100, 'Police spéciale','Change la police', '/images/police.png',    @shopId);
+  (300, 'Thème Galaxie', 'Un habillage exclusif pour votre interface.', 'sparkles', @shopId),
+  (150, 'Companion',   'Un petit companion qui veille sur vous lors de votre étude',     'cat',     @shopId),
+  (100, 'Police spéciale','Change la police', 'a-large-small',    @shopId);
 
 INSERT INTO Inventaire (id_utilisateur)
 SELECT u.id_utilisateur
